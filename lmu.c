@@ -30,13 +30,13 @@ int main(int argc, char* argv[])
     }
     else
     {
-        printf("Lum Shell. (lua + unqlite + mongoose)\n");
+        printf("Lmu Shell. (lua + mongoose + unqlite)\n");
         char buf[MAX_BUF_SIZE];
         strcpy(buf, "print(");
         int rc = 0;
         while(1)
         {
-            printf("lum> ");
+            printf("lmu> ");
             gets(buf + 6);
             if(buf[0] == 0x04 || buf[0] == 0x1a)
             {
