@@ -13,7 +13,7 @@ $(TARGET):$(OBJS) $(LUALIB)
 	$(CC) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 $(LUALIB):
-	cd lua; make posix
+	cd lua; make posix; cd ..
 	
 clean:
-	rm -f $(TARGET) $(OBJS)
+	cd lua; make clean; cd ..; rm -f $(TARGET) $(OBJS)
