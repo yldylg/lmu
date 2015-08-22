@@ -1,11 +1,11 @@
-# build lua+unqlite+mongoose
+# build lua+mongoose+unqlite
 
 CC=gcc
 CFLAGS=-c -Ilua
 LDFLAGS=-Llua -llua -lm -s
-OBJS=lua-mongoose.o lua-unqlite.o lum.o mongoose/mongoose.o unqlite/unqlite.o
+OBJS=lua-mongoose.o lua-unqlite.o lmu.o mongoose/mongoose.o unqlite/unqlite.o
 LUALIB=lua/liblua.a
-TARGET=lum
+TARGET=lmu
 
 .PHONY: all clean
 
