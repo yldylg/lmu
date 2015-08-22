@@ -1,7 +1,7 @@
 #usage
 
 ###run server
-lum main.lua
+lmu main.lua
 
 ###run browser
 http://localhost/
