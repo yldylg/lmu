@@ -4,12 +4,16 @@ CC=gcc
 CFLAGS=-c -Ilua
 LDFLAGS=-Llua -llua -lm -s
 OBJS=lua-mongoose.o lua-unqlite.o lum.o mongoose/mongoose.o unqlite/unqlite.o
+LUALIB=lua/liblua.a
 TARGET=lum
 
 .PHONY: all clean
 
-$(TARGET):$(OBJS)
+$(TARGET):$(OBJS) $(LUALIB)
 	$(CC) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
+$(LUALIB):
+	cd lua; make posix
+	
 clean:
 	rm -f $(TARGET) $(OBJS)
