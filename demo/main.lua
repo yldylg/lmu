@@ -16,7 +16,9 @@ local function web_handle(ctx)
 		print(k,v)
 	end
 	print()
-	return "hello mongoose"
+	if ctx["uri"] == "/abc" then
+		return "hello mongoose"
+	end
 end
 
 local function ws_handle(obj)

@@ -70,7 +70,7 @@ static void ws_handler(struct mg_connection *conn, int flag)
     lua_pcall(L, 1, 1, 0);
 }
 
-static void web_handler(struct mg_connection *conn)
+static int web_handler(struct mg_connection *conn)
 {
     struct mg_context *ctx = conn->server_param;
     lua_State *L = ctx->vm;
@@ -81,7 +81,15 @@ static void web_handler(struct mg_connection *conn)
     lua_pcall(L, 1, 1, 0);
     size_t len;
     const char* ret = luaL_tolstring(L, -1, &len);
-    mg_send_data(conn,ret,len);
+    if(ret == NULL || strlen(ret) == 0)
+    {
+        return -1;
+    }
+    else
+    {
+        mg_send_data(conn,ret,len);
+        return 0;
+    }
 }
 
 static int event_handler(struct mg_connection *conn, enum mg_event ev)
@@ -93,18 +101,18 @@ static int event_handler(struct mg_connection *conn, enum mg_event ev)
             ws_handler(conn, FLAG_WS_DATA);
             return MG_TRUE;
         }
-        else if(strncmp(conn->uri, "/ajax/", 6) == 0)
-        {
-            web_handler(conn);
-            return MG_TRUE;
-        }
         else
         {
-            const char* srvfilepath = strlen(conn->uri) <= 1 ? "index.html" : conn->uri;
-            if(srvfilepath[0] == '/')
-                srvfilepath++;
-            mg_send_file(conn, srvfilepath, NULL);
-            return MG_MORE;
+            int ret = web_handler(conn);
+            if(ret < 0)
+            {
+                const char* srvfilepath = strlen(conn->uri) <= 1 ? "index.html" : conn->uri;
+                if(srvfilepath[0] == '/')
+                    srvfilepath++;
+                mg_send_file(conn, srvfilepath, NULL);
+                return MG_MORE;
+            }
+            return MG_TRUE;
         }
     }
     else if(ev == MG_WS_CONNECT)
