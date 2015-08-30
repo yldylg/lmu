@@ -79,17 +79,15 @@ static int web_handler(struct mg_connection *conn)
     web_param(L, conn);
 
     lua_pcall(L, 1, 1, 0);
-    size_t len;
-    const char* ret = luaL_tolstring(L, -1, &len);
-    if(ret == NULL || strlen(ret) == 0)
+    if(lua_isnoneornil(L, -1))
     {
         return -1;
     }
-    else
-    {
-        mg_send_data(conn,ret,len);
-        return 0;
-    }
+
+    size_t len;
+    const char* ret = luaL_tolstring(L, -1, &len);
+    mg_send_data(conn,ret,len);
+    return 0;
 }
 
 static int event_handler(struct mg_connection *conn, enum mg_event ev)
@@ -120,6 +118,8 @@ static int event_handler(struct mg_connection *conn, enum mg_event ev)
         conn->connection_param = malloc(25);
         const char* key = mg_get_header(conn, "Sec-WebSocket-Key");
         strncpy(conn->connection_param, key, 24);
+        char *p = (char*)(conn->connection_param);
+        p[24] = '\0';
         ws_handler(conn, FLAG_WS_OPEN);
         return MG_TRUE;
     }
