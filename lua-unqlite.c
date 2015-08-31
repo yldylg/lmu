@@ -303,7 +303,8 @@ static const luaL_Reg unqlite_functions[] =
     { "store", _unqlite_kv_store },
     { "fetch", _unqlite_kv_fetch },
     { "delete", _unqlite_kv_delete },
-    { "delete", _unqlite_kv_delete },
+    { "begin", _unqlite_begin },
+    { "commit", _unqlite_commit },
     { NULL, NULL}
 };
 
