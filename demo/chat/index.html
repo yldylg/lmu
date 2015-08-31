@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>lmu-chat</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="3rd/css/bootstrap.css">
+    <script src="3rd/js/jquery.js"></script>
+    <script src="3rd/js/bootstrap.js"></script>
+    <script src="3rd/js/handlebars.js"></script>
+    <style>
+        html,
+        body,
+        .container,
+        .row {
+            height: 100%;
+        }
+        
+        #login-frm {
+            position: absolute;
+            width: 300px;
+            height: 104px;
+            margin-left: -150px;
+            margin-top: -52px;
+            left: 50%;
+            top: 50%;
+            box-shadow: 0 0 25px #ddd;
+        }
+        
+        #chat-frm {
+            height: 100%;
+            padding: 25px;
+            display: none;
+        }
+        
+        #chat-frm>div {
+            height: 100%;
+            padding: 0;
+            box-shadow: 0 0 25px #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #msgbox {
+            position: absolute;
+            bottom: 56px;
+            padding-top: 15px;
+            overflow: hidden;
+        }
+        
+        #editbox {
+            position: absolute;
+            bottom: 0;
+            padding-top: 5px;
+            padding-bottom: 15px;
+        }
+        
+        #msgbox > .alert {
+            margin-bottom: 10px;
+        }
+        
+        .msg {
+            padding-right: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div id="login-frm" class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title text-center">欢迎来到简易聊天室</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="input-group">
+                        <input id="username" type="text" class="form-control" placeholder="请输入您的昵称">
+                        <span id="join-chat" class="input-group-addon btn btn-default">开始聊天</span>
+                    </div>
+                </div>
+            </div>
+            <div id="chat-frm" class="col-md-12">
+                <div class="col-md-12">
+                    <div id="msgbox" class="col-md-12"></div>
+                    <div id="editbox" class="col-md-12">
+                        <div class="input-group">
+                            <input id="message" type="text" class="form-control" placeholder="请输入消息">
+                            <span id="send-msg" class="input-group-addon btn btn-default">发送</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script id="msg1" type="text/x-handlebars-template">
+        <div class="alert alert-info alert-dismissible">
+            <span class="glyphicon glyphicon-user"></span>
+            <span class="msg">{{from}}:&nbsp;{{msg}}</span>
+            <button type="button" class="close" data-dismiss="alert">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </script>
+
+    <script id="msg2" type="text/x-handlebars-template">
+        <div class="alert alert-success alert-dismissible">
+            <span class="glyphicon glyphicon-user"></span>
+            <span class="msg">{{from}}:&nbsp;{{msg}}</span>
+            <button type="button" class="close" data-dismiss="alert">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </script>
+
+    <script type="text/javascript">
+        // message
+        var newmsg1 = Handlebars.compile($("#msg1").html());
+        var newmsg2 = Handlebars.compile($("#msg2").html());
+
+        // websocket
+        function join(e) {
+            var username = $("#username").val();
+
+            window.WebSocket = window.WebSocket || window.MozWebSocket;
+            if (!window.WebSocket) {
+                alert("WebSocket not supported");
+            }
+            var ws = new WebSocket("ws://" + location.host + "/chat");
+            ws.onopen = function (event) {
+                console.log(event);
+                ws.send(JSON.stringify({
+                    op: 'join',
+                    name: username
+                }));
+            };
+            ws.onclose = function (event) {
+                console.log(event);
+            };
+            ws.onerror = function (event) {
+                console.log(event);
+            };
+            ws.onmessage = function (event) {
+                var data = JSON.parse(event.data);
+                if ($.isArray(data)) {
+                    for (var i in data) {
+                        parsedata(JSON.parse(data[i]));
+                    }
+                } else {
+                    parsedata(data);
+                }
+            };
+
+            function parsedata(data) {
+                var op = data['op'];
+                if (op == "join" && data["ok"]) {
+                    $("#login-frm").hide();
+                    $("#chat-frm").show();
+                } else if (op == "p2p" || op == "all") {
+                    var from = data['from'];
+                    var msg = data['msg'];
+                    if (msg) {
+                        if (from == username) {
+                            $('#msgbox').append(newmsg2(data));
+                        } else {
+                            $('#msgbox').append(newmsg1(data));
+                        }
+                    } else {
+                        alert("send message error!");
+                    }
+                }
+            }
+
+            function senddata(e1) {
+                var msg = $("#message").val();
+                ws.send(JSON.stringify({
+                    op: 'all',
+                    from: username,
+                    msg: msg
+                }));
+                $("#message").val('');
+            }
+
+            $("#send-msg").on("click", senddata);
+        }
+
+        $("#join-chat").on("click", join);
+    </script>
+</body>
+
+</html>
