@@ -5,10 +5,10 @@
 <head>
     <title>lmu-chat</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="3rd/css/bootstrap.css">
-    <script src="3rd/js/jquery.js"></script>
-    <script src="3rd/js/bootstrap.js"></script>
-    <script src="3rd/js/handlebars.js"></script>
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/handlebars.js/2.0.0-alpha.4/handlebars.min.js"></script>
     <style>
         html,
         body,
@@ -145,7 +145,9 @@
                 var data = JSON.parse(event.data);
                 if ($.isArray(data)) {
                     for (var i in data) {
-                        parsedata(JSON.parse(data[i]));
+                        if (data[i]) {
+                            parsedata(JSON.parse(data[i]));
+                        }
                     }
                 } else {
                     parsedata(data);
