@@ -185,9 +185,19 @@
             }
 
             $("#send-msg").on("click", senddata);
+            $("#message").on("keydown", function (e) {
+                if (e.keyCode == 13) {
+                    senddata();
+                }
+            })
         }
 
         $("#join-chat").on("click", join);
+        $("#username").on("keydown", function (e) {
+            if (e.keyCode == 13) {
+                join();
+            }
+        })
     </script>
 </body>
 
