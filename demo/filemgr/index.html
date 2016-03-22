@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>lmu-filemgr</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="http://apps.bdimg.com/libs/handlebars.js/2.0.0-alpha.4/handlebars.min.js"></script>
+    <style>
+        html,
+        body,
+        .container-fluid,
+        .row {
+            height: 100%;
+        }
+        
+        .container-fluid {
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        // websocket
+        function join(e) {
+            var username = $("#username").val();
+
+            window.WebSocket = window.WebSocket || window.MozWebSocket;
+            if (!window.WebSocket) {
+                alert("WebSocket not supported");
+            }
+            var ws = new WebSocket("ws://" + location.host + "/chat");
+            ws.onopen = function (event) {
+                console.log(event);
+                ws.send(JSON.stringify({
+                    op: 'join',
+                    name: username
+                }));
+            };
+            ws.onclose = function (event) {
+                console.log(event);
+            };
+            ws.onerror = function (event) {
+                console.log(event);
+            };
+            ws.onmessage = function (event) {
+                var data = JSON.parse(event.data);
+                console.log(data);
+            };
+        }
+    </script>
+</body>
+
+</html>

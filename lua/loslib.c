@@ -131,15 +131,28 @@
 static int os_listdir(lua_State *L)
 {
 	const char *dirname = luaL_optstring(L, 1, NULL);
+	lua_newtable(L);
+	int i = 1;
 #ifdef _WIN32
+	if(!strcmp(dirname, "/"))
+	{
+		char drvs[64] = {'\0'};
+		GetLogicalDriveStrings(63, drvs);
+		char *p = drvs;
+		while(*p != '\0')
+		{
+			lua_pushstring(L, p);
+			lua_rawseti(L, -2, i++);
+			p += strlen(p) + 1;
+		}
+		return 1;
+	}
 	char ptn[MAX_PATH];
 	WIN32_FIND_DATA findata;
 	HANDLE hfile;
 	sprintf(ptn, "%s%s", dirname, "\\*.*");
 	if((hfile = FindFirstFile(ptn, &findata)) == INVALID_HANDLE_VALUE)
 		return 0;
-	lua_newtable(L);
-	int i = 1;
 	do
 	{
 		lua_pushstring(L, findata.cFileName);
@@ -152,8 +165,6 @@ static int os_listdir(lua_State *L)
 	struct dirent *prent;
 	if((pdir = opendir(dirname)) == NULL)
 		return 0;
-	lua_newtable(L);
-	int i = 1;
 	while((prent = readdir(pdir)))
 	{
 		lua_pushstring(L, prent->d_name);
