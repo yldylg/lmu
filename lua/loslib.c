@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 
 #include "lua.h"
 
@@ -120,7 +121,104 @@
 /* }================================================================== */
 
 
+// ===========================================================================
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dirent.h>
+#endif
 
+static int os_listdir(lua_State *L)
+{
+	const char *dirname = luaL_optstring(L, 1, NULL);
+#ifdef _WIN32
+	char ptn[MAX_PATH];
+	WIN32_FIND_DATA findata;
+	HANDLE hfile;
+	sprintf(ptn, "%s%s", dirname, "\\*.*");
+	if((hfile = FindFirstFile(ptn, &findata)) == INVALID_HANDLE_VALUE)
+		return 0;
+	lua_newtable(L);
+	int i = 1;
+	do
+	{
+		lua_pushstring(L, findata.cFileName);
+		lua_rawseti(L, -2, i++);
+	}
+	while(FindNextFile(hfile, &findata));
+	FindClose(hfile);
+#else
+	DIR *pdir;
+	struct dirent *prent;
+	if((pdir = opendir(dirname)) == NULL)
+		return 0;
+	lua_newtable(L);
+	int i = 1;
+	while((prent = readdir(pdir)))
+	{
+		lua_pushstring(L, prent->d_name);
+		lua_rawseti(L, -2, i++);
+	}
+#endif
+	return 1;
+}
+// ===========================================================================
+
+static int os_stat(lua_State *L)
+{
+	const char *filename = luaL_optstring(L, 1, NULL);
+	struct stat st;
+	if(stat(filename, &st) < 0)
+		return 0;
+	lua_newtable(L);
+	
+	lua_pushinteger(L, st.st_size);
+    lua_setfield(L, -2, "size");
+	
+    l_pushtime(L, st.st_mtime);
+    lua_setfield(L, -2, "mtime");
+	
+    l_pushtime(L, st.st_ctime );
+    lua_setfield(L, -2, "ctime");
+	
+	lua_pushinteger(L, st.st_mode);
+    lua_setfield(L, -2, "mode");
+	
+	if(S_ISDIR(st.st_mode))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+    lua_setfield(L, -2, "isdir");
+	
+	if(S_ISREG(st.st_mode))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+    lua_setfield(L, -2, "isreg");
+	
+	#ifdef _UNIX
+	if(S_ISLNK(st.st_mode))
+		lua_pushboolean(L, 1);
+	else
+		lua_pushboolean(L, 0);
+    lua_setfield(L, -2, "islnk");
+	#endif
+	return 1;
+}
+
+// ===========================================================================
+
+static int os_mkdir (lua_State *L)
+{
+  const char *filename = luaL_checkstring(L, 1);
+  #ifdef _WIN32
+  return luaL_fileresult(L, mkdir(filename) == 0, filename);
+  #else
+  return luaL_fileresult(L, mkdir(filename, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) == 0, filename);
+  #endif
+}
+
+// ===========================================================================
 
 static int os_execute (lua_State *L) {
   const char *cmd = luaL_optstring(L, 1, NULL);
@@ -351,9 +449,12 @@ static const luaL_Reg syslib[] = {
   {"execute",   os_execute},
   {"exit",      os_exit},
   {"getenv",    os_getenv},
+  {"listdir",   os_listdir},
+  {"mkdir",     os_mkdir},
   {"remove",    os_remove},
   {"rename",    os_rename},
   {"setlocale", os_setlocale},
+  {"stat",      os_stat},
   {"time",      os_time},
   {"tmpname",   os_tmpname},
   {NULL, NULL}
