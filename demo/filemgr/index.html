@@ -5,35 +5,23 @@
 <head>
     <title>lmu-filemgr</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="http://apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://www.jeasyui.com/easyui/themes/bootstrap/easyui.css">
     <script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="http://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
     <script src="http://apps.bdimg.com/libs/handlebars.js/2.0.0-alpha.4/handlebars.min.js"></script>
     <style>
         html,
-        body,
-        .container-fluid,
-        .row {
+        body {
             height: 100%;
-        }
-        
-        .container-fluid {
-            padding: 20px;
         }
     </style>
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-        </div>
-    </div>
-
+    <table id="filexp"></table>
 
     <script type="text/javascript">
-        // websocket
-        function join(e) {
-            var username = $("#username").val();
+        $(document).ready(function () {
 
             window.WebSocket = window.WebSocket || window.MozWebSocket;
             if (!window.WebSocket) {
@@ -43,8 +31,8 @@
             ws.onopen = function (event) {
                 console.log(event);
                 ws.send(JSON.stringify({
-                    op: 'join',
-                    name: username
+                    op: 'listdir',
+                    path: '/'
                 }));
             };
             ws.onclose = function (event) {
@@ -54,10 +42,48 @@
                 console.log(event);
             };
             ws.onmessage = function (event) {
-                var data = JSON.parse(event.data);
-                console.log(data);
+                var obj = JSON.parse(event.data);
+                if (obj.op === "listdir") {
+                    $('#filexp').datagrid("loadData", obj.data);
+                }
             };
-        }
+
+            $('#filexp').datagrid({
+                singleSelect: true,
+                collapsible: true,
+                columns: [[
+                    {
+                        field: 'name',
+                        title: '名称',
+                        width: 320
+                    },
+                    {
+                        field: 'mtime',
+                        title: '修改时间',
+                        width: 120
+                    },
+                    {
+                        field: 'type',
+                        title: '类型',
+                        width: 120
+                    },
+                    {
+                        field: 'size',
+                        title: '大小',
+                        width: 120
+                    }
+                ]]
+            });
+
+            $('#filexp').datagrid({
+                "onDblClickRow": function (index, row) {
+                    ws.send(JSON.stringify({
+                        op: 'listdir',
+                        path: row.path
+                    }));
+                }
+            });
+        });
     </script>
 </body>
 

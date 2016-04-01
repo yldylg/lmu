@@ -19,16 +19,49 @@ local function ws_handle(obj)
 		print(key .. " closed")
 	else
 		local data = json.decode(obj["data"])
-		local msg = {}
+		local ret = {}
+		local fst = {}
 		local op = data["op"]
-		msg["op"] = op
-		mongoose.ws_send(server1, key, json.encode(msgs))
+		
+		if op == "listdir" then
+			local path = data["path"]
+			local dirs = os.listdir(path)
+			for k, v in pairs(dirs) do
+				if path ~= "/" then
+					v2 = path .. "\\" .. v
+				else
+					v2 = v
+				end
+				print(v2)
+				local st = os.stat(v2)
+				if st ~= nil then
+					table.insert(fst, {
+						name = v,
+						mtime = st["mtime"],
+						type =st["isdir"],
+						size =st["size"],
+						path = v2
+					})
+				else
+					table.insert(fst, {
+						name = v,
+						mtime = "",
+						type = "",
+						size = "",
+						path = v2
+					})
+				end
+			end
+		end
+		ret["op"] = op
+		ret["data"] = fst
+		mongoose.ws_send(server1, key, json.encode(ret))
 	end
 end
 
 ----------
 
-server1 = mongoose.create(80, web_handle, ws_handle)
+server1 = mongoose.create(8080, web_handle, ws_handle)
 while true do
 	server1:poll()
 end

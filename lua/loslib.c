@@ -141,9 +141,12 @@ static int os_listdir(lua_State *L)
 		char *p = drvs;
 		while(*p != '\0')
 		{
+			int len = strlen(p);
+			if(p[len - 1] == '\\')
+				p[len - 1] = '\0';
 			lua_pushstring(L, p);
 			lua_rawseti(L, -2, i++);
-			p += strlen(p) + 1;
+			p += len + 1;
 		}
 		return 1;
 	}

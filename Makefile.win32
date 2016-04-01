@@ -14,7 +14,7 @@ $(TARGET):$(OBJS) $(LUALIB) $(LUACJSONLIB)
 	$(CC) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 $(LUALIB):
-	cd lua; make generic; cd ..
+	cd lua; make MYLIBS=-lws2_32 MYCFLAGS=-D_WIN32_WINNT=0x0501 generic; cd ..
 	
 $(LUACJSONLIB):
 	cd lua-cjson; make; cd ..
