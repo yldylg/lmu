@@ -20,6 +20,7 @@
 <body>
     <table id="filexp"></table>
 
+    <script type="text/javascript" src="base64.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
 
@@ -27,13 +28,13 @@
             if (!window.WebSocket) {
                 alert("WebSocket not supported");
             }
-            var ws = new WebSocket("ws://" + location.host + "/chat");
+            var ws = new WebSocket("ws://" + location.host + "/filemgr");
             ws.onopen = function (event) {
                 console.log(event);
-                ws.send(JSON.stringify({
+                ws.send(base64.encode(JSON.stringify({
                     op: 'listdir',
                     path: '/'
-                }));
+                })));
             };
             ws.onclose = function (event) {
                 console.log(event);
@@ -42,7 +43,7 @@
                 console.log(event);
             };
             ws.onmessage = function (event) {
-                var obj = JSON.parse(event.data);
+                var obj = JSON.parse(base64.decode(event.data));
                 if (obj.op === "listdir") {
                     $('#filexp').datagrid("loadData", obj.data);
                 }
@@ -77,10 +78,10 @@
 
             $('#filexp').datagrid({
                 "onDblClickRow": function (index, row) {
-                    ws.send(JSON.stringify({
+                    ws.send(base64.encode(JSON.stringify({
                         op: 'listdir',
                         path: row.path
-                    }));
+                    })));
                 }
             });
         });

@@ -480,6 +480,17 @@ static const luaL_Reg syslib[] = {
 
 LUAMOD_API int luaopen_os (lua_State *L) {
   luaL_newlib(L, syslib);
+  
+  #if defined(_WIN32)
+	const char *os_type = "win";
+  #elif defined(_UNIX)
+	const char *os_type = "unix";
+  #else
+	const char *os_type = "unknown";
+  #endif
+  lua_pushstring(L, "os");
+  lua_pushstring(L, os_type);
+  lua_settable(L, -3);
   return 1;
 }
 

@@ -1,5 +1,13 @@
 local mongoose = require("mongoose")
 local json = require("json")
+local base64 = require("base64")
+
+----------
+
+local path_sep = "/"
+if os.os == "win" then
+	path_sep = "\\"
+end
 
 ----------
 
@@ -18,7 +26,7 @@ local function ws_handle(obj)
 	elseif event == "close" then
 		print(key .. " closed")
 	else
-		local data = json.decode(obj["data"])
+		local data = json.decode(base64.decode(obj["data"]))
 		local ret = {}
 		local fst = {}
 		local op = data["op"]
@@ -27,10 +35,14 @@ local function ws_handle(obj)
 			local path = data["path"]
 			local dirs = os.listdir(path)
 			for k, v in pairs(dirs) do
-				if path ~= "/" then
-					v2 = path .. "\\" .. v
-				else
+				if path == "/" and os.os == "win" then
 					v2 = v
+				elseif v == ".." then
+					v2 = string.match(path, "(.*)" .. path_sep)
+				elseif v == "." then
+					goto next
+				else
+					v2 = path .. path_sep .. v
 				end
 				print(v2)
 				local st = os.stat(v2)
@@ -51,11 +63,12 @@ local function ws_handle(obj)
 						path = v2
 					})
 				end
+			::next::
 			end
 		end
 		ret["op"] = op
 		ret["data"] = fst
-		mongoose.ws_send(server1, key, json.encode(ret))
+		mongoose.ws_send(server1, key, base64.encode(json.encode(ret)))
 	end
 end
 

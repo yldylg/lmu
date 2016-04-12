@@ -3,6 +3,7 @@
 
 #include "lua-mongoose.h"
 #include "lua-unqlite.h"
+#include "lua-base64.h"
 #include "lua-cjson/lua-cjson.h"
 
 #define MAX_BUF_SIZE 4096
@@ -22,6 +23,7 @@ int main(int argc, char* argv[])
     luaL_module(L, "mongoose", luaopen_mongoose);
     luaL_module(L, "unqlite", luaopen_unqlite);
     luaL_module(L, "json", luaopen_cjson);
+    luaL_module(L, "base64", luaopen_base64);
 
     if(argv[1] != NULL)
     {
