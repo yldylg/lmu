@@ -1,4 +1,4 @@
-# build lua+mongoose+unqlite
+# build lua + mongoose + unqlite
 
 CC=gcc
 CFLAGS=-c -Ilua
