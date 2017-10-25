@@ -118,6 +118,7 @@
         // message
         var newmsg1 = Handlebars.compile($("#msg1").html());
         var newmsg2 = Handlebars.compile($("#msg2").html());
+        var toshowmsg = false;
 
         // websocket
         function join(e) {
@@ -167,6 +168,7 @@
                             $('#msgbox').append(newmsg2(data));
                         } else {
                             $('#msgbox').append(newmsg1(data));
+                            notifyMessage(data);
                         }
                     } else {
                         alert("send message error!");
@@ -198,6 +200,26 @@
                 join();
             }
         });
+        
+        Notification.requestPermission();
+        function notifyMessage(data){
+            if(toshowmsg){
+                var notification = new Notification('来自'+data.from+'的新消息', {
+                    body: data.msg,
+                    icon: 'msg.png'
+                });
+                setTimeout(function(){
+                    notification.close();
+                }, 4600);
+            }
+        }
+        window.onfocus = function() {
+            toshowmsg = false;
+        };
+        window.onblur = function() {
+            toshowmsg = true;
+        };
+
     </script>
 </body>
 
